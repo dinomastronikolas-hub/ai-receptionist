@@ -18,6 +18,12 @@ export default function ErrorBoundary({ error, reset }: { error: Error & { diges
       <Button className="mt-8" onClick={reset}>
         Try again
       </Button>
+      {!offline && (
+        <a href="/status" className="mt-4 text-[14px] font-semibold text-muted underline-offset-4 hover:underline">
+          Run a setup check
+        </a>
+      )}
+      {error.digest && <p className="mt-6 font-mono text-[11px] text-subtle">Error ID: {error.digest}</p>}
     </div>
   );
 }
