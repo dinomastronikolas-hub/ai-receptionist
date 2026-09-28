@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeMemberStats, rankMembers } from "../group-stats";
 import type { Board } from "../queries";
-import type { Habit, Profile } from "../types";
+import type { Habit, HistoryMap, Profile } from "../types";
 
 const now = new Date("2026-09-28T16:00:00Z"); // Monday afternoon in Europe & Americas
 
@@ -29,9 +29,12 @@ describe("group stats & leaderboard", () => {
       ],
       habits: [ann, ...ben],
       history: new Map([
-        ["ann-h", { days: days(20, 28), noteDays: new Set() }],
-        ...ben.map((h) => [h.id, { days: ["2026-09-22", "2026-09-24", "2026-09-26", "2026-09-28"], noteDays: new Set<string>() }] as const),
-      ]),
+        ["ann-h", { days: days(20, 28), noteDays: new Set<string>() }],
+        ...ben.map((h): [string, { days: string[]; noteDays: Set<string> }] => [
+          h.id,
+          { days: ["2026-09-22", "2026-09-24", "2026-09-26", "2026-09-28"], noteDays: new Set<string>() },
+        ]),
+      ]) as HistoryMap,
     };
     const stats = computeMemberStats(board, now);
     const ranked = rankMembers(stats);
