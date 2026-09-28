@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { friendlyError } from "@/lib/errors";
 import { setSelectedGroup } from "@/lib/queries";
+import { attempt } from "@/lib/attempt";
 import { getSupabase } from "@/lib/supabase/client";
 
 export function JoinButton({ code }: { code: string }) {
@@ -20,7 +21,7 @@ export function JoinButton({ code }: { code: string }) {
         onClick={async () => {
           setBusy(true);
           setError(null);
-          const { data, error } = await getSupabase().rpc("join_group", { p_code: code });
+          const { data, error } = await attempt(() => getSupabase().rpc("join_group", { p_code: code }));
           if (error) {
             setBusy(false);
             return setError(friendlyError(error));

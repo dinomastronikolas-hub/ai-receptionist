@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { deviceTimeZone } from "@/lib/dates";
 import { friendlyError } from "@/lib/errors";
+import { attempt } from "@/lib/attempt";
 import { getSupabase } from "@/lib/supabase/client";
 import { displayNameSchema, emailSchema, passwordSchema, safeNext, usernameSchema } from "@/lib/validation";
 import { FormError, GoogleButton, siteOrigin } from "../auth-ui";
@@ -88,19 +89,21 @@ function SignupForm() {
           setErrors(errs);
           if (Object.values(errs).some(Boolean) || !n.success || !u.success || !em.success) return;
           setBusy(true);
-          const { data, error } = await getSupabase().auth.signUp({
-            email: em.data,
-            password,
-            options: {
-              data: { username: u.data, display_name: n.data, timezone: deviceTimeZone() },
-              emailRedirectTo: `${siteOrigin()}/auth/callback?next=${encodeURIComponent(afterSignup)}`,
-            },
-          });
+          const { data, error } = await attempt(() =>
+            getSupabase().auth.signUp({
+              email: em.data,
+              password,
+              options: {
+                data: { username: u.data, display_name: n.data, timezone: deviceTimeZone() },
+                emailRedirectTo: `${siteOrigin()}/auth/callback?next=${encodeURIComponent(afterSignup)}`,
+              },
+            }),
+          );
           setBusy(false);
           if (error) return setError(friendlyError(error));
           // With email confirmation on, Supabase returns a user with no identities for an existing email.
-          if (data.user && data.user.identities?.length === 0) return setError("An account with that email already exists. Try logging in.");
-          if (data.session) {
+          if (data?.user && data.user.identities?.length === 0) return setError("An account with that email already exists. Try logging in.");
+          if (data?.session) {
             router.replace(afterSignup);
             router.refresh();
           } else {

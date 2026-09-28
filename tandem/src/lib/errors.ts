@@ -1,3 +1,5 @@
+import { MISSING_CONFIG_MESSAGE, supabaseConfigured } from "./supabase/env";
+
 /**
  * Turn Supabase / Postgres / network errors into short, friendly messages.
  * Custom RPC errors raise a machine-readable message (e.g. `invalid_invite`).
@@ -38,8 +40,12 @@ export function isAuthError(err: unknown): boolean {
 
 export function friendlyError(err: unknown, fallback = "Something went wrong. Please try again."): string {
   if (!err) return fallback;
+  if (!supabaseConfigured()) return MISSING_CONFIG_MESSAGE;
   const e = err as MaybeError;
   const msg = e.message ?? "";
+  if (e.name === "TimeoutError" || /signal timed out|aborted/i.test(msg)) {
+    return "The server took too long to respond. Check your connection and try again.";
+  }
   for (const key of Object.keys(MESSAGES)) {
     if (msg.includes(key)) return MESSAGES[key];
   }

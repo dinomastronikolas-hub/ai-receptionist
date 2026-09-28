@@ -8,6 +8,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { deviceTimeZone } from "@/lib/dates";
 import { friendlyError } from "@/lib/errors";
+import { attempt } from "@/lib/attempt";
 import { getSupabase } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import { displayNameSchema, usernameSchema } from "@/lib/validation";
@@ -40,12 +41,14 @@ export function Onboarding({ userId, profile, next }: { userId: string; profile:
             setErrors(errs);
             if (!n.success || !u.success) return;
             setBusy(true);
-            const { error } = await getSupabase()
-              .from("profiles")
-              .update({ display_name: n.data, username: u.data, timezone: deviceTimeZone() })
-              .eq("id", userId);
+            const { error } = await attempt(() =>
+              getSupabase()
+                .from("profiles")
+                .update({ display_name: n.data, username: u.data, timezone: deviceTimeZone() })
+                .eq("id", userId),
+            );
             setBusy(false);
-            if (error) return setErrors({ username: error.code === "23505" ? "That username is taken — try another." : friendlyError(error) });
+            if (error) return setErrors({ username: (error as { code?: string }).code === "23505" ? "That username is taken — try another." : friendlyError(error) });
             if (next.startsWith("/join/")) return finish(next);
             setStep("group");
           }}

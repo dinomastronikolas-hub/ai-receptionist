@@ -6,6 +6,7 @@ import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { friendlyError } from "@/lib/errors";
+import { attempt } from "@/lib/attempt";
 import { getSupabase } from "@/lib/supabase/client";
 import { emailSchema, safeNext } from "@/lib/validation";
 import { FormError, GoogleButton } from "../auth-ui";
@@ -41,7 +42,7 @@ function LoginForm() {
           if (!parsed.success) return setError(parsed.error.issues[0].message);
           if (!password) return setError("Enter your password.");
           setBusy(true);
-          const { error } = await getSupabase().auth.signInWithPassword({ email: parsed.data, password });
+          const { error } = await attempt(() => getSupabase().auth.signInWithPassword({ email: parsed.data, password }));
           if (error) {
             setBusy(false);
             return setError(friendlyError(error));

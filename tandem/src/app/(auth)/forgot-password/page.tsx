@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { friendlyError } from "@/lib/errors";
+import { attempt } from "@/lib/attempt";
 import { getSupabase } from "@/lib/supabase/client";
 import { emailSchema } from "@/lib/validation";
 import { FormError, siteOrigin } from "../auth-ui";
@@ -41,11 +42,13 @@ export default function ForgotPasswordPage() {
           const parsed = emailSchema.safeParse(email);
           if (!parsed.success) return setError(parsed.error.issues[0].message);
           setBusy(true);
-          const { error } = await getSupabase().auth.resetPasswordForEmail(parsed.data, {
-            redirectTo: `${siteOrigin()}/auth/callback?next=/reset-password`,
-          });
+          const { error } = await attempt(() =>
+            getSupabase().auth.resetPasswordForEmail(parsed.data, {
+              redirectTo: `${siteOrigin()}/auth/callback?next=/reset-password`,
+            }),
+          );
           setBusy(false);
-          if (error && !/not found/i.test(error.message)) return setError(friendlyError(error));
+          if (error && !/not found/i.test((error as Error).message ?? "")) return setError(friendlyError(error));
           setSent(true);
         }}
       >
