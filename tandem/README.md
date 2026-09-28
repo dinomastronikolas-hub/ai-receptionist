@@ -152,6 +152,8 @@ Copy `.env.example` to `.env.local` for local development. On Vercel, set the sa
 
 Never prefix the secret key, VAPID private key or cron secret with `NEXT_PUBLIC_`.
 
+**Built-in defaults:** the production project's URL and *publishable* key are committed as fallbacks in `src/lib/supabase/env.ts`. They are public by design, so the app works even if the two `NEXT_PUBLIC_SUPABASE_*` variables aren't set on Vercel. Environment variables always take precedence. If you move to a different Supabase project, update those two constants or set the variables. Never commit the secret or service-role key.
+
 ## Database migrations & demo data
 
 The whole schema lives in `supabase/migrations/`. There are two ways to apply it:
