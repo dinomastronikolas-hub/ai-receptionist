@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
 const supabaseOrigin = (() => {
   try {
     return new URL(supabaseUrl).origin;

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { friendlyError } from "@/lib/errors";
+import { attempt } from "@/lib/attempt";
 import { getSupabase } from "@/lib/supabase/client";
 import { passwordSchema } from "@/lib/validation";
 import { FormError } from "../auth-ui";
@@ -49,7 +50,7 @@ export default function ResetPasswordPage() {
           if (!parsed.success) return setError(parsed.error.issues[0].message);
           if (password !== confirm) return setError("Passwords don't match.");
           setBusy(true);
-          const { error } = await getSupabase().auth.updateUser({ password });
+          const { error } = await attempt(() => getSupabase().auth.updateUser({ password }));
           setBusy(false);
           if (error) return setError(friendlyError(error));
           router.replace("/today");
