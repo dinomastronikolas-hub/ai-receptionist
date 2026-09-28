@@ -342,6 +342,13 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Accounts created before this migration ran get a profile too (they pick a
+-- username during onboarding).
+insert into public.profiles (id, display_name)
+select u.id, left(btrim(coalesce(u.raw_user_meta_data ->> 'display_name', u.raw_user_meta_data ->> 'name', '')), 40)
+from auth.users u
+on conflict (id) do nothing;
+
 -- -----------------------------------------------------------------------------
 -- Authorization helpers (used by RLS policies)
 -- -----------------------------------------------------------------------------
