@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f6f6f3;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #efefeb;
+  --fg: #141414;
+  --fg-muted: #6b6b66;
+  --fg-subtle: #9a9a93;
+  --border: rgba(20, 20, 20, 0.08);
+  --border-strong: rgba(20, 20, 20, 0.14);
+  --primary: #141414;
+  --primary-fg: #ffffff;
+  --brand: #10b981;
+  --danger: #e11d48;
+  --ring: rgba(16, 185, 129, 0.45);
+
+  /* history grid */
+  --cell-missed: rgba(20, 20, 20, 0.07);
+  --cell-open: rgba(20, 20, 20, 0.035);
+  --cell-rest-dot: rgba(20, 20, 20, 0.16);
+
+  --shadow-card: 0 1px 2px rgba(20, 20, 20, 0.04), 0 4px 16px -8px rgba(20, 20, 20, 0.08);
+  --shadow-float: 0 8px 30px -8px rgba(20, 20, 20, 0.25);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0b0b0c;
+  --bg-elevated: #161618;
+  --bg-sunken: #111113;
+  --fg: #f3f3f1;
+  --fg-muted: #a1a19b;
+  --fg-subtle: #6e6e69;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --primary: #f3f3f1;
+  --primary-fg: #0b0b0c;
+  --danger: #fb7185;
+
+  --cell-missed: rgba(255, 255, 255, 0.07);
+  --cell-open: rgba(255, 255, 255, 0.035);
+  --cell-rest-dot: rgba(255, 255, 255, 0.16);
+
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-float: 0 8px 30px -8px rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-elevated: var(--bg-elevated);
+  --color-sunken: var(--bg-sunken);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-subtle: var(--fg-subtle);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-brand: var(--brand);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    overscroll-behavior-y: none;
+  }
+  ::selection {
+    background: rgba(16, 185, 129, 0.25);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* History grid cell size scales with the container, with a readable minimum. */
+.history-grid {
+  container-type: inline-size;
+}
+.history-grid-inner {
+  --gap: 3px;
+  --cell: clamp(10px, calc((100cqw - 26px) / var(--weeks) - var(--gap)), 22px);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-sunken);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
