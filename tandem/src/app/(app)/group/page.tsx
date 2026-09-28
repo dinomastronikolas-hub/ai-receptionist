@@ -137,7 +137,7 @@ function GroupDashboard() {
             aria-label="Switch group"
           >
             <span aria-hidden>{group.emoji}</span>
-            <span className="truncate">{group.name}</span>
+            <span className="min-w-0 break-words">{group.name}</span>
             <ChevronDown className="size-5 shrink-0 text-subtle" />
           </button>
         }

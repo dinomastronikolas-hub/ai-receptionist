@@ -28,7 +28,7 @@ export function NoteSheet({
   );
 }
 
-export function NoteEditor({ habit, day, userId, onDone }: { habit: Habit; day: string; userId: string; onDone?: () => void }) {
+export function NoteEditor({ habit, day, userId, onDone, showDate = true }: { habit: Habit; day: string; userId: string; onDone?: () => void; showDate?: boolean }) {
   const { data: note, isLoading } = useNote(habit.id, day, true);
   const [draft, setDraft] = useState<string | null>(null);
   const save = useSaveNote(userId);
@@ -50,7 +50,7 @@ export function NoteEditor({ habit, day, userId, onDone }: { habit: Habit; day: 
         );
       }}
     >
-      <p className="mb-3 text-sm text-muted">{formatDay(day)}</p>
+      {showDate && <p className="mb-3 text-sm text-muted">{formatDay(day)}</p>}
       <Textarea
         autoFocus
         maxLength={280}

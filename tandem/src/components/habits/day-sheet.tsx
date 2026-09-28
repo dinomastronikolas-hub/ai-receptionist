@@ -77,7 +77,7 @@ function DayDetails({ habit, engine, day, userId, ownerName }: { habit: Habit; e
               </>
             )}
           </button>
-          {done && <NoteEditor habit={habit} day={day} userId={userId} />}
+          {done && <NoteEditor habit={habit} day={day} userId={userId} showDate={false} />}
         </>
       ) : done ? (
         note ? (

@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:db": "vitest run --project db",
+    "test:e2e": "bash scripts/e2e.sh",
+    "icons": "node scripts/generate-icons.mjs",
+    "vapid": "web-push generate-vapid-keys"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -25,6 +31,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22.20.4",
     "@types/pg": "^8.23.1",

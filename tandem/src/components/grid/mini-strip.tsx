@@ -30,7 +30,7 @@ export function MiniStrip({
           <span
             key={iso}
             title={`${formatDay(iso, { weekday: "short", month: "short", day: "numeric" })}: ${STATUS_LABEL[status]}`}
-            className="relative aspect-square min-w-0 flex-1 rounded-[4px]"
+            className="relative aspect-square max-w-7 min-w-0 flex-1 rounded-[4px]"
             style={hidden ? { background: "transparent" } : look.style}
           >
             {look.dot === "rest" && !hidden && (

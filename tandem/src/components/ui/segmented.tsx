@@ -38,7 +38,7 @@ export function Segmented<T extends string>({
             {active && (
               <motion.span
                 layoutId={`seg-${id}`}
-                className="absolute inset-0 rounded-full bg-elevated shadow-card"
+                className="absolute inset-0 rounded-full bg-elevated shadow-card dark:bg-white/12"
                 transition={{ type: "spring", stiffness: 500, damping: 38 }}
               />
             )}

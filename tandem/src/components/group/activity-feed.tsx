@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MessageCircle, Send, Trash2 } from "lucide-react";
+import { MessageCircle, Send, SmilePlus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, displayName } from "@/components/ui/avatar";
@@ -20,6 +20,7 @@ function FeedEntry({ item, author, people, userId, today }: { item: FeedItem; au
   const addComment = useAddComment(userId);
   const delComment = useDeleteComment();
   const [commenting, setCommenting] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [draft, setDraft] = useState("");
   const hex = colorHex(item.habit.color);
   const mine = item.user_id === userId;
@@ -52,7 +53,7 @@ function FeedEntry({ item, author, people, userId, today }: { item: FeedItem; au
 
           <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
             {counts.map((c) =>
-              mine && c.count === 0 ? null : (
+              c.count === 0 && !(picking && !mine) ? null : (
                 <button
                   key={c.emoji}
                   type="button"
@@ -60,17 +61,29 @@ function FeedEntry({ item, author, people, userId, today }: { item: FeedItem; au
                   title={c.who || undefined}
                   aria-pressed={c.me}
                   aria-label={`${c.emoji} ${c.count}${c.me ? ", including you" : ""}`}
-                  onClick={() => toggle.mutate({ completionId: item.id, emoji: c.emoji, on: !c.me })}
+                  onClick={() => {
+                    toggle.mutate({ completionId: item.id, emoji: c.emoji, on: !c.me });
+                    setPicking(false);
+                  }}
                   className={cn(
                     "flex h-8 items-center gap-1 rounded-full px-2.5 text-[14px] transition active:scale-90 disabled:cursor-default disabled:active:scale-100",
                     c.me ? "bg-brand/15 ring-1 ring-brand/40" : "bg-sunken",
-                    c.count === 0 && "opacity-60 hover:opacity-100",
                   )}
                 >
                   <span>{c.emoji}</span>
                   {c.count > 0 && <span className="tabular text-[12px] font-semibold">{c.count}</span>}
                 </button>
               ),
+            )}
+            {!mine && !picking && (
+              <button
+                type="button"
+                onClick={() => setPicking(true)}
+                aria-label="Add a reaction"
+                className="flex h-8 items-center rounded-full bg-sunken px-2.5 text-muted hover:text-fg"
+              >
+                <SmilePlus className="size-4" />
+              </button>
             )}
             <button
               type="button"
@@ -157,16 +170,25 @@ export function ActivityFeed({
   userId: string;
   today: string;
 }) {
+  const [limit, setLimit] = useState(12);
   if (isLoading) return <Skeleton className="h-48 w-full rounded-3xl" />;
   const list = (items ?? []).filter((i) => people.has(i.user_id));
+  const shown = list.slice(0, limit);
   if (list.length === 0) {
     return <EmptyState emoji="🌤️" title="Quiet so far" body="Check-ins from the last two weeks show up here. Be the first today!" />;
   }
   return (
-    <Card className="divide-y divide-line">
-      {list.map((item) => (
-        <FeedEntry key={item.id} item={item} author={people.get(item.user_id)!} people={people} userId={userId} today={today} />
-      ))}
-    </Card>
+    <div className="space-y-3">
+      <Card className="divide-y divide-line">
+        {shown.map((item) => (
+          <FeedEntry key={item.id} item={item} author={people.get(item.user_id)!} people={people} userId={userId} today={today} />
+        ))}
+      </Card>
+      {list.length > shown.length && (
+        <button type="button" onClick={() => setLimit((n) => n + 12)} className="h-11 w-full rounded-full bg-elevated font-semibold text-muted shadow-card hover:text-fg">
+          Show more
+        </button>
+      )}
+    </div>
   );
 }

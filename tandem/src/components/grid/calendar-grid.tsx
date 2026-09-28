@@ -111,10 +111,23 @@ export function CalendarGrid({
 
   return (
     <div className={cn("history-grid", className)}>
-      <div className="history-grid-inner" style={{ "--weeks": weeks } as React.CSSProperties}>
-        <div ref={scrollRef} className="no-scrollbar overflow-x-auto">
-          <div className="inline-flex min-w-full flex-col gap-1.5 pr-0.5">
-            <div className="flex" style={{ gap: "var(--gap)", paddingLeft: showWeekdays ? 20 : 0 }}>
+      <div className="history-grid-inner flex" style={{ "--weeks": weeks } as React.CSSProperties}>
+        {showWeekdays && (
+          <div
+            className="grid w-5 shrink-0"
+            style={{ gridTemplateRows: "repeat(7, var(--cell))", rowGap: "var(--gap)", paddingTop: "calc(0.875rem + 0.375rem)" }}
+            aria-hidden
+          >
+            {WEEKDAY_LETTER.map((l, i) => (
+              <span key={i} className="text-[9px] leading-[var(--cell)] font-medium text-subtle">
+                {i % 2 === 0 ? l : ""}
+              </span>
+            ))}
+          </div>
+        )}
+        <div ref={scrollRef} className="no-scrollbar min-w-0 flex-1 overflow-x-auto">
+          <div className="inline-flex flex-col gap-1.5 pr-0.5">
+            <div className="flex" style={{ gap: "var(--gap)" }}>
               {Array.from({ length: weeks }, (_, w) => {
                 const m = months.find((x) => x.col === w);
                 return (
@@ -124,28 +137,17 @@ export function CalendarGrid({
                 );
               })}
             </div>
-            <div className="flex">
-              {showWeekdays && (
-                <div className="grid w-5 shrink-0" style={{ gridTemplateRows: "repeat(7, var(--cell))", rowGap: "var(--gap)" }}>
-                  {WEEKDAY_LETTER.map((l, i) => (
-                    <span key={i} className="text-[9px] leading-[var(--cell)] font-medium text-subtle">
-                      {i % 2 === 0 ? l : ""}
-                    </span>
-                  ))}
-                </div>
-              )}
-              <div
-                role="grid"
-                className="grid"
-                style={{
-                  gridTemplateRows: "repeat(7, var(--cell))",
-                  gridAutoColumns: "var(--cell)",
-                  gridAutoFlow: "column",
-                  gap: "var(--gap)",
-                }}
-              >
-                {cells}
-              </div>
+            <div
+              role="grid"
+              className="grid"
+              style={{
+                gridTemplateRows: "repeat(7, var(--cell))",
+                gridAutoColumns: "var(--cell)",
+                gridAutoFlow: "column",
+                gap: "var(--gap)",
+              }}
+            >
+              {cells}
             </div>
           </div>
         </div>

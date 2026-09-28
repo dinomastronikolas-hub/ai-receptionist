@@ -117,20 +117,25 @@ async function fetchBoard(gid: string): Promise<Board> {
   return { members, habits, history };
 }
 
-async function fetchFeed(gid: string, memberIds: string[], sinceDay: ISODate): Promise<FeedItem[]> {
+async function fetchFeed(memberIds: string[], sinceDay: ISODate): Promise<FeedItem[]> {
   if (memberIds.length === 0) return [];
+  // Filtered embeds use the table name (not an alias) so the filter target is unambiguous.
   const res = await getSupabase()
     .from("habit_completions")
     .select(
-      "id, habit_id, user_id, completed_on, note, created_at, habit:habits!inner(id, name, emoji, color, visibility), reactions(id, completion_id, user_id, emoji, created_at), comments(id, completion_id, user_id, body, created_at)",
+      "id, habit_id, user_id, completed_on, note, created_at, habits!inner(id, name, emoji, color, visibility), reactions(id, completion_id, user_id, emoji, created_at), comments(id, completion_id, user_id, body, created_at)",
     )
     .in("user_id", memberIds)
-    .eq("habit.visibility", "group")
+    .eq("habits.visibility", "group")
     .gte("completed_on", sinceDay)
     .order("created_at", { ascending: false })
     .limit(40);
-  void gid;
-  return unwrap(res) as unknown as FeedItem[];
+  type Row = Omit<FeedItem, "habit"> & { habits: FeedItem["habit"] };
+  return (unwrap(res) as unknown as Row[]).map(({ habits, ...rest }) => ({
+    ...rest,
+    habit: habits,
+    comments: [...(rest.comments ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)),
+  }));
 }
 
 export interface Cheer {
@@ -148,22 +153,22 @@ async function fetchCheers(uid: string): Promise<Cheer[]> {
   const sb = getSupabase();
   const since = new Date(Date.now() - 3 * 86_400_000).toISOString();
   const sel = (extra: string) =>
-    `id, created_at, user_id, ${extra}, from:profiles(id, display_name, username, avatar_emoji, avatar_color), completion:habit_completions!inner(id, user_id, completed_on, habit:habits(name, emoji))`;
+    `id, created_at, user_id, ${extra}, from:profiles(id, display_name, username, avatar_emoji, avatar_color), habit_completions!inner(id, user_id, completed_on, habit:habits(name, emoji))`;
   const [r, c] = await Promise.all([
-    sb.from("reactions").select(sel("emoji")).eq("completion.user_id", uid).neq("user_id", uid)
+    sb.from("reactions").select(sel("emoji")).eq("habit_completions.user_id", uid).neq("user_id", uid)
       .gte("created_at", since).order("created_at", { ascending: false }).limit(20),
-    sb.from("comments").select(sel("body")).eq("completion.user_id", uid).neq("user_id", uid)
+    sb.from("comments").select(sel("body")).eq("habit_completions.user_id", uid).neq("user_id", uid)
       .gte("created_at", since).order("created_at", { ascending: false }).limit(10),
   ]);
   type Row = {
     id: string; created_at: string; emoji?: ReactionEmoji; body?: string;
     from: Cheer["from"] | null;
-    completion: { completed_on: string; habit: { name: string; emoji: string } | null };
+    habit_completions: { completed_on: string; habit: { name: string; emoji: string } | null } | null;
   };
   const toCheer = (kind: Cheer["kind"]) => (row: Row): Cheer | null =>
-    row.from && row.completion?.habit
+    row.from && row.habit_completions?.habit
       ? { kind, id: row.id, created_at: row.created_at, emoji: row.emoji, body: row.body, from: row.from,
-          habit: row.completion.habit, completed_on: row.completion.completed_on }
+          habit: row.habit_completions.habit, completed_on: row.habit_completions.completed_on }
       : null;
   const all = [
     ...(unwrap(r) as unknown as Row[]).map(toCheer("reaction")),
@@ -225,7 +230,7 @@ export function useFeed(gid: string | null | undefined, memberIds: string[] | un
   const since = addDays(today, -13);
   return useQuery({
     queryKey: [...qk.feed(gid ?? "none"), memberIds?.join(",") ?? ""],
-    queryFn: () => fetchFeed(gid!, memberIds ?? [], since),
+    queryFn: () => fetchFeed(memberIds ?? [], since),
     enabled: Boolean(gid && memberIds && memberIds.length > 0),
   });
 }
